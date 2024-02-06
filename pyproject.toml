@@ -36,8 +36,8 @@ classifiers = [
 ]
 
 dependencies = [
-  # add your deps
   "loguru==0.7.2",
+  "requests==2.31.0",
 ]
 
 [project.scripts]
@@ -71,8 +71,8 @@ PYTHONPATH = "."
 
 [tool.hatch.envs.default.scripts]
 _pytest = 'pytest -vv --tb=auto --strict-markers --random-order-bucket=class --log-format="%(asctime)s %(name)s:%(funcName)s %(levelname)s %(message)s" --log-date-format="%Y-%m-%d %H:%M:%S" --log-level=DEBUG --html=test_report.html --self-contained-html'
-test = '_pytest {args:install_binary tests}'
-cov = '_pytest --cov=install_binary --cov-config=coverage.cfg --cov-report html:htmlcov.dev --cov-report term {args:install_binary tests}'
+test = '_pytest tests {args}'
+cov = '_pytest --cov=install_binary --cov-config=coverage.cfg --cov-report html:htmlcov.dev --cov-report term tests {args}'
 # XXX hatch ensures 'python' here is from its local virtual environment
 cli = 'install-binary {args}'
 help = 'cli --help'
@@ -84,7 +84,7 @@ python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
 extra-dependencies = ["mypy>=1.0.0"]
 
 [tool.hatch.envs.types.scripts]
-check = "mypy --strict --install-types --non-interactive {args:install_binary tests}"
+check = "mypy --strict --install-types --non-interactive install_binary tests {args}"
 
 [tool.hatch.envs.hatch-static-analysis]
 config-path = "ruff_defaults.toml"

@@ -1,6 +1,8 @@
 # install binary readme
 
-Install binary from GitHub to local bin
+Install binary from GitHub to `~/.local/bin`.
+
+The binaries can be packaged either in a [tarball](https://github.com/starship/starship/releases) or as a [direct binary](https://github.com/direnv/direnv/releases).
 
 ## Prerequisites
 
@@ -24,25 +26,11 @@ Install binary from GitHub to local bin
 ## How to use
 
 ```console
-# run the CLI
 hatch run cli
-make cli
-
-# run the CLI help
-hatch run help
 make help
-
-# or append any CLI-defined args, like --help
-hatch run cli --help
-make cli EXTRA='...'
-
-# run mypy
-hatch run types:check
 make mypy
-
-# run tests
 hatch run test
 
-# go to the venv shell
-hatch shell
+# to install via pipx locally
+make deploy
 ```

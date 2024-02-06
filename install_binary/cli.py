@@ -1,12 +1,11 @@
-from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser, Namespace
+from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser, BooleanOptionalAction, Namespace
 from pathlib import Path
 
 from loguru import logger
 
 from . import __version__ as VERSION
+from .install import LATEST_RELEASE, install
 from .log import setup_logging
-from .parse import parse
-from .report import report
 
 HELP_FORMATTER = ArgumentDefaultsHelpFormatter
 
@@ -25,58 +24,51 @@ def parse_args() -> Namespace:
         default="logs",
     )
     parser.add_argument(
-        "-i",
-        "--input-file",
-        help="Input file",
-        type=Path,
-        metavar="PATH",
+        "-b",
+        "--binary",
+        help="Destination binary (e.g. starship); must match binary in the downloaded artifact",
         required=True,
     )
-
-    commands = parser.add_subparsers(dest="command", required=True)
-
-    parse_command = commands.add_parser(
-        "parse",
-        formatter_class=HELP_FORMATTER,
-        help="Parse data",
-        description="Parse data from input",
-    )
-    parse_command.add_argument(
-        "-o",
-        "--output-file",
-        help="Output file",
+    parser.add_argument(
+        "-p",
+        "--dest-path",
+        help="Destination path",
         type=Path,
-        metavar="PATH",
+        default="~/.local/bin",
+    )
+    parser.add_argument(
+        "-g",
+        "--source-repo",
+        help="Source GitHub repo (e.g. https://github.com/starship/starship)",
+        metavar="URL",
         required=True,
     )
-
-    report_command = commands.add_parser(
-        "report",
-        formatter_class=HELP_FORMATTER,
-        help="Make report",
-        description="Make report from data produced by 'parse'",
-    )
-    report_command.add_argument(
-        "-o",
-        "--output-dir",
-        help="Output directory",
-        type=Path,
-        metavar="PATH",
+    parser.add_argument(
+        "-a",
+        "--artifact",
+        help="Released binary artifact (e.g. starship-x86_64-unknown-linux-musl.tar.gz)",
         required=True,
+    )
+    parser.add_argument(
+        "-r",
+        "--release",
+        help="Release to install",
+        metavar="STR",
+        default=LATEST_RELEASE,
+    )
+    parser.add_argument(
+        "-c",
+        "--compress",
+        help="Compress during artifact donwload",
+        action=BooleanOptionalAction,
+        default=True,
     )
 
     return parser.parse_args()
-
-
-DISPATCH = {
-    "parse": parse,
-    "report": report,
-}
 
 
 def cli() -> None:
     args = parse_args()
     setup_logging(args)
     logger.debug("args={}", args)
-    # handle the args
-    DISPATCH[args.command](args)
+    install(args)
