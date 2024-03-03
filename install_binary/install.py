@@ -76,7 +76,6 @@ def install(args: Namespace) -> None:
             tmp_binary = extract_as_bz2(cast(BytesIO, tmp_binary))
         except Exception as exc:
             logger.warning("Error unpacking {}, file is likely not a tarball ({})", tmp, repr(exc))
-            raise
 
         if tmp_binary is None:
             raise RuntimeError(f"Error occurred during unpacking of {tmp}")
