@@ -46,7 +46,8 @@ def parse_args() -> Namespace:
     parser.add_argument(
         "-a",
         "--artifact",
-        help="Released binary artifact (e.g. starship-x86_64-unknown-linux-musl.tar.gz)",
+        help=r"Released binary artifact, Python format string recognizing {tag} that would be replaced by resolved release version (e.g. starship-x86_64-unknown-linux-musl.tar.gz or 'restic_{tag}_linux_amd64.bz2')",
+        metavar="FMT_STRING",
         required=True,
     )
     parser.add_argument(
@@ -59,7 +60,7 @@ def parse_args() -> Namespace:
     parser.add_argument(
         "-c",
         "--compress",
-        help="Compress during artifact donwload",
+        help="Compress during artifact download",
         action=BooleanOptionalAction,
         default=True,
     )

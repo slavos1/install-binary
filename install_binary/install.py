@@ -1,3 +1,5 @@
+import bz2
+import re
 import tarfile
 from argparse import Namespace
 from hashlib import md5
@@ -34,15 +36,26 @@ def extract_binary_from_tar(stream: BytesIO, desired_name: str) -> Optional[Byte
     return None
 
 
+def extract_as_bz2(stream: BytesIO) -> Optional[BytesIO]:
+    stream.seek(0)
+    return BytesIO(bz2.BZ2File(stream).read())
+
+
 def install(args: Namespace) -> None:
     logger.debug("args={}", args)
+    parts = urlsplit(args.source_repo)
     if args.release == LATEST_RELEASE:
         # XXX yes, latest has a quirk in the path :|
         download_stub = f"{LATEST_RELEASE}/download"
+        resolve_version_url = parts._replace(path="/".join((parts.path, "releases", download_stub))).geturl()
+        response = requests.get(resolve_version_url)
+        resolved_release = urlsplit(response.url).path.split("/")[-1]
+        logger.debug("resolved_release={}", resolved_release)
     else:
         download_stub = f"download/{args.release}"
-    parts = urlsplit(args.source_repo)
-    download_link = parts._replace(path="/".join((parts.path, "releases", download_stub, args.artifact))).geturl()
+        resolved_release = args.release
+    artifact = args.artifact.format(tag=re.sub("^v", "", resolved_release))
+    download_link = parts._replace(path="/".join((parts.path, "releases", download_stub, artifact))).geturl()
     headers = {}
     if args.compress:
         headers.update({"Accept-Encoding": "gzip"})
@@ -59,11 +72,14 @@ def install(args: Namespace) -> None:
         tmp_binary: Optional[BytesIO] = BytesIO(tmp.read())
         try:
             tmp_binary = extract_binary_from_tar(cast(BytesIO, tmp_binary), args.binary)
+        except tarfile.ReadError:
+            tmp_binary = extract_as_bz2(cast(BytesIO, tmp_binary))
         except Exception as exc:
-            logger.warning("Error unpacking {}, file is likely not a tarball ({})", tmp, exc)
+            logger.warning("Error unpacking {}, file is likely not a tarball ({})", tmp, repr(exc))
+            raise
 
         if tmp_binary is None:
-            raise RuntimeError(f"Error occurred duing unpacking of {tmp}")
+            raise RuntimeError(f"Error occurred during unpacking of {tmp}")
 
         tmp_binary.seek(0)
         new_digest = file_digest(cast(BinaryIO, tmp_binary))
