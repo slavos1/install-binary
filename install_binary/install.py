@@ -50,7 +50,7 @@ def install(args: Namespace) -> None:
         resolve_version_url = parts._replace(path="/".join((parts.path, "releases", download_stub))).geturl()
         response = requests.get(resolve_version_url)
         resolved_release = urlsplit(response.url).path.split("/")[-1]
-        logger.debug("resolved_release={}", resolved_release)
+        logger.info("Resolved version for {}: {}", args.binary, resolved_release)
     else:
         download_stub = f"download/{args.release}"
         resolved_release = args.release
@@ -73,9 +73,12 @@ def install(args: Namespace) -> None:
         try:
             tmp_binary = extract_binary_from_tar(cast(BytesIO, tmp_binary), args.binary)
         except tarfile.ReadError:
-            tmp_binary = extract_as_bz2(cast(BytesIO, tmp_binary))
+            try:
+                tmp_binary = extract_as_bz2(cast(BytesIO, tmp_binary))
+            except Exception as exc:
+                logger.warning("Error unpacking {}, file is likely not a BZ2 archive ({})", tmp, exc)
         except Exception as exc:
-            logger.warning("Error unpacking {}, file is likely not a tarball ({})", tmp, repr(exc))
+            logger.warning("Error unpacking {}, file is likely not a tarball ({})", tmp, exc)
 
         if tmp_binary is None:
             raise RuntimeError(f"Error occurred during unpacking of {tmp}")
