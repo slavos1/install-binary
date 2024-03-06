@@ -12,4 +12,4 @@ To download such artifact:
 * as a sole binary from `bz2`
 4. we install (copy) it to `~/.local/bin`
 
-Note: there is an [issue raised](issues/1) to support installing of Debian packages (.deb).
+Note: there is an [issue raised](https://github.com/slavos1/install-binary/issues/1) to support installing of Debian packages (.deb).
